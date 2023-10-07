@@ -7,12 +7,11 @@ function sendSlack_(sectionedItems) {
 
   let itemList = "";
   for (const section of sectionedItems) {
-    itemList += "\n*" + Object.keys(section) + "*\n\n";
+    itemList += "\n" + Object.keys(section) + "\n";
 
-    for (const item of Object.values(section)) {
-      const due = item.due;
-      if (due) {
-        const date = due.date.slice(5).replace("-", "/");
+    for (const item of Object.values(section)[0]) {
+      if (item.due) {
+        const date = item.due.slice(5).replace("-", "/");
         itemList += "　• 〜" + `${date}：${item.content}` + "\n";
       } else {
         itemList += "　• " + `${item.content}` + "\n";
@@ -21,7 +20,7 @@ function sendSlack_(sectionedItems) {
   }
   const message = template.replace(/%{items}/g, itemList);
 
-  Logger.log(`[debug] ${message}`);
+  Logger.log(`[debug] Slack message is ${message}`);
 
   // see: https://api.slack.com/reference/block-kit/block-elements#button
   const payload = {

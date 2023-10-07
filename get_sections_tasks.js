@@ -20,17 +20,16 @@ function getAllTasks() {
     "&resource_types=[%22sections%22%2C %22items%22]";
 
   // タスク、セクションを取得
-  try {
-    UrlFetchApp.fetch(url, options);
-  } catch (e) {
-    Logger.log("GetAllTasksErrorOccurred:" + e);
+  const res = UrlFetchApp.fetch(url, options);
+  if (res.getResponseCode() !== 200) {
+    Logger.log("Getting all tasks error occurred.");
     return;
   }
   const data = JSON.parse(res.getContentText("UTF-8"));
 
   // タスクがない場合終了
   const items = getUncheckedItems_(data);
-  if (items.length == 0) {
+  if (items.length === 0) {
     Logger.log("There is no items.");
     return;
   }
@@ -42,7 +41,7 @@ function getAllTasks() {
 
 // 終了していないタスクを取得
 function getUncheckedItems_(data) {
-  if (data.items == 0) {
+  if (data.items === 0) {
     return; // 何も返さない
   }
   const uncheckedItems = data.items.filter(
@@ -54,10 +53,11 @@ function getUncheckedItems_(data) {
   for (const item of uncheckedItems) {
     items.push({
       content: item.content,
-      due: item.due,
+      due: item.due.date,
       sectionId: item.section_id,
     });
   }
+  Logger.log(items);
   return items;
 }
 
@@ -73,21 +73,25 @@ function getSectionedItems_(sections, items) {
   let sectionedItems = [];
 
   for (const section of sections) {
-    // sectionIDが一致するitemのみを選択
-    const filteredItems = items.filter((item) => item.sectionId === section.id);
+    Logger.log("Section is " + section.name + ":");
 
+    // sectionIDが一致するitemのみを選択
+    const filteredItems = items.filter((item) => {
+      return item.sectionId === section.id;
+    });
+    Logger.log(filteredItems);
     // sectionに該当するアイテムがない場合スキップ
-    if (filteredItems.length == 0) {
-      break;
+    if (filteredItems.length === 0) {
+      continue;
     }
 
-    // itemsからセクションIDを取り除く
+    // itemsからセクションIDを取り除し、配列に追加
     const formattedItems = filteredItems.map((item) => {
       let newItem = { ...item }; // オブジェクトのコピーを作成
       delete newItem["sectionId"]; // 指定のキーを削除
       return newItem;
     });
-
     sectionedItems.push({ [section.name]: formattedItems });
   }
+  return sectionedItems;
 }
