@@ -51,9 +51,13 @@ function getUncheckedItems_(data) {
   // 連想配列の配列を生成
   let items = [];
   for (const item of uncheckedItems) {
+    let date = "";
+    if (item.due) {
+      date = item.due.date;
+    }
     items.push({
       content: item.content,
-      due: item.due.date,
+      due: date,
       sectionId: item.section_id,
     });
   }
